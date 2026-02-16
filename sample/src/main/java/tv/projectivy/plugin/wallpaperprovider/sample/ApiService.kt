@@ -11,7 +11,7 @@ data class WallpaperStatus(
 )
 
 interface ApiService {
-    // 2. Updated to your fixed endpoint /tvdb
+    // 2. Updated to your fixed endpoint /tvdb/api
     // Removed all @Query parameters as they are no longer needed
     @GET("tvdb/api.json")
     fun getWallpaperStatus(): Call<WallpaperStatus>
