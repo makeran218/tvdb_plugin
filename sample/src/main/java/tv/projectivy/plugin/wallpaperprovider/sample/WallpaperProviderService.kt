@@ -69,7 +69,12 @@ class WallpaperProviderService: Service() {
                             // KEEPING JELLYFIN ACTION LOGIC
                             // If the URL is jellyfin://items/123, it stays that way.
                             // Projectivy Launcher will handle the intent if the app is installed.
-                            val action = status.actionUrl
+                            var action = status.actionUrl
+
+                            if (!action.isNullOrBlank() && action.startsWith("jellyfin://items/")) {
+                                val id = action.substringAfter("jellyfin://items/")
+                                action = "embyatv://tv.emby.embyatv/play/$id"
+                            }
 
                             Log.e("WallpaperService", "PROJECTIVY_LOG: API Success: ${status.imageUrl} | Action: $action")
 
