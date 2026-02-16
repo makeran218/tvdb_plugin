@@ -35,7 +35,7 @@ jobs:
       # NEU: Datei suchen, umbenennen und ins Hauptverzeichnis holen
       - name: Rename and Move APK
         run: |
-          find . -name "*-debug.apk" -exec mv {} projectivy-tvbgsuite-plugin.apk \;
+          find . -name "*-debug.apk" -exec mv {} projectivy-tmdb.apk \;
           echo "APK wurde umbenannt und verschoben."
 
       # Schritt für DEV & MAIN: Als Artifact hochladen (für schnelle Tests)
@@ -43,8 +43,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: projectivy-tvbgsuite-plugin
-          path: projectivy-tvbgsuite-plugin.apk
+          name: projectivy-tmdb
+          path: projectivy-tmdb.apk
           retention-days: 5
 
       # NEU: Schritt nur für MAIN: Ein "Latest Release" erstellen
@@ -55,5 +55,5 @@ jobs:
           tag_name: latest
           name: Latest Stable Build
           body: "Automatisch erstellter Build vom Main-Branch."
-          files: projectivy-tvbgsuite-plugin.apk
+          files: projectivy-tmdb.apk
           make_latest: true

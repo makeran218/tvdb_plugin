@@ -11,7 +11,6 @@ import tv.projectivy.plugin.wallpaperprovider.api.IWallpaperProviderService
 import tv.projectivy.plugin.wallpaperprovider.api.Wallpaper
 import tv.projectivy.plugin.wallpaperprovider.api.WallpaperDisplayMode
 import tv.projectivy.plugin.wallpaperprovider.api.WallpaperType
-import tv.projectivy.plugin.wallpaperprovider.sample.ApiService
 
 class WallpaperProviderService: Service() {
 
@@ -30,15 +29,6 @@ class WallpaperProviderService: Service() {
         return binder
     }
 
-    private fun isPackageInstalled(packageName: String): Boolean {
-        return try {
-            packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     private val binder = object : IWallpaperProviderService.Stub() {
         override fun getWallpapers(event: Event?): List<Wallpaper> {
             Log.e("WallpaperService", "PROJECTIVY_LOG: getWallpapers | Event: ${event?.eventType}")
@@ -49,11 +39,21 @@ class WallpaperProviderService: Service() {
             if (event is Event.LauncherIdleModeChanged) {
                 if (!event.isIdle) {
                     if (PreferencesManager.refreshOnIdleExit) {
+                        Log.e("WallpaperService", "PROJECTIVY_LOG: Refreshing on idle exit")
                         forceRefresh = true
                     } else {
                         val lastUri = PreferencesManager.lastWallpaperUri
+                        val lastAuthor = PreferencesManager.lastWallpaperAuthor
                         if (lastUri.isNotBlank()) {
-                            return listOf(Wallpaper(uri = lastUri, type = WallpaperType.IMAGE, displayMode = WallpaperDisplayMode.CROP, author = PreferencesManager.lastWallpaperAuthor, actionUri = null))
+                            return listOf(
+                                Wallpaper(
+                                    uri = lastUri,
+                                    type = WallpaperType.IMAGE,
+                                    displayMode = WallpaperDisplayMode.CROP,
+                                    author = lastAuthor.ifBlank { null },
+                                    actionUri = null
+                                )
+                            )
                         }
                         return emptyList()
                     }
@@ -62,10 +62,10 @@ class WallpaperProviderService: Service() {
                 }
             }
 
-            // Execute API Call
+            // Execute API Call for TimeElapsed or forced Refresh
             if (event is Event.TimeElapsed || forceRefresh) {
                 try {
-                    // 1. Hardcoded Base URL
+                    // We use the root IP as the base URL
                     val fixedBaseUrl = "http://192.168.2.50/"
 
                     val apiService = Retrofit.Builder()
@@ -74,36 +74,34 @@ class WallpaperProviderService: Service() {
                         .build()
                         .create(ApiService::class.java)
 
-                    // 2. Simple call without parameters
+                    // Call the fixed endpoint (tvdb) defined in ApiService
                     val response = apiService.getWallpaperStatus().execute()
 
                     if (response.isSuccessful) {
                         val status = response.body()
                         if (status != null) {
-                            var action = status.actionUrl
+                            Log.e("WallpaperService", "PROJECTIVY_LOG: API Success: ${status.imageUrl}")
 
-                            // Handle Jellyfin deep linking if necessary
-                            if (!action.isNullOrBlank() && action.startsWith("jellyfin://items/")) {
-                                val id = action.substringAfter("jellyfin://items/")
-                                val preferredClient = PreferencesManager.preferredClient
-                                val newAction = ClientManager.getClientActionUri(this@WallpaperProviderService, preferredClient, id)
-                                if (newAction != null) action = newAction
-                            }
+                            // Use the actionUrl and title directly from your JSON
+                            val action = status.actionUrl
+                            val displayTitle = status.title ?: ""
 
-                            // Save for persistence
+                            // Save for persistence so it shows up when offline or restarting
                             PreferencesManager.lastWallpaperUri = status.imageUrl
-                            PreferencesManager.lastWallpaperAuthor = status.title ?: ""
+                            PreferencesManager.lastWallpaperAuthor = displayTitle
 
                             return listOf(
                                 Wallpaper(
                                     uri = status.imageUrl,
                                     type = WallpaperType.IMAGE,
                                     displayMode = WallpaperDisplayMode.CROP,
-                                    author = status.title,
+                                    author = displayTitle,
                                     actionUri = action
                                 )
                             )
                         }
+                    } else {
+                        Log.e("WallpaperService", "PROJECTIVY_LOG: API Response Unsuccessful: ${response.code()}")
                     }
                 } catch (e: Exception) {
                     Log.e("WallpaperService", "PROJECTIVY_LOG: API Error", e)
