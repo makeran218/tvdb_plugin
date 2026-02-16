@@ -7,7 +7,7 @@ import retrofit2.http.GET
 data class WallpaperStatus(
     val imageUrl: String,
     val actionUrl: String?,
-    val title: String? // Added title field
+    val title: String?
 )
 
 interface ApiService {
