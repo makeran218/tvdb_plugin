@@ -66,18 +66,34 @@ class WallpaperProviderService: Service() {
                     if (response.isSuccessful) {
                         val status = response.body()
                         if (status != null) {
-                            // KEEPING JELLYFIN ACTION LOGIC
-                            // If the URL is jellyfin://items/123, it stays that way.
-                            // Projectivy Launcher will handle the intent if the app is installed.
-                            var action = status.actionUrl
+                            val rawAction = status.actionUrl ?: ""
+                            var finalAction: String? = null
 
-                            if (!action.isNullOrBlank() && action.startsWith("jellyfin://items/")) {
-                                val id = action.substringAfter("jellyfin://items/")
-                                action = "embyatv://tv.emby.embyatv/play/$id"
+                            // Parse the custom actionUrl format (e.g., "movies_tmdb:967941")
+                            if (rawAction.contains("_tmdb:")) {
+                                val parts = rawAction.split("_tmdb:") // Split into ["movies", "967941"]
+                                if (parts.size == 2) {
+                                    val type = parts[0] // "movies" or "series"
+                                    val id = parts[1]   // "967941"
+
+                                    // Map "movies" -> "movie" and "series" -> "series" for Stremio
+                                    val stremioType = when (type) {
+                                        "movies" -> "movie"
+                                        "series" -> "series"
+                                        else -> type
+                                    }
+
+                                    // Construct the final Stremio URI
+                                    finalAction = "stremio://detail/$stremioType/tmdb:$id"
+                                }
+                            } else {
+                                // Fallback if the format doesn't match
+                                finalAction = rawAction
                             }
 
-                            Log.e("WallpaperService", "PROJECTIVY_LOG: API Success: ${status.imageUrl} | Action: $action")
+                            Log.e("WallpaperService", "PROJECTIVY_LOG: Converted $rawAction to $finalAction")
 
+                            // Save for persistence
                             PreferencesManager.lastWallpaperUri = status.imageUrl
                             PreferencesManager.lastWallpaperAuthor = status.title ?: ""
 
@@ -87,7 +103,7 @@ class WallpaperProviderService: Service() {
                                     type = WallpaperType.IMAGE,
                                     displayMode = WallpaperDisplayMode.CROP,
                                     author = status.title,
-                                    actionUri = action // This passes the Jellyfin link to the launcher
+                                    actionUri = finalAction // This is now the Stremio link
                                 )
                             )
                         }
