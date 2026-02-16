@@ -41,122 +41,73 @@ class WallpaperProviderService: Service() {
 
     private val binder = object : IWallpaperProviderService.Stub() {
         override fun getWallpapers(event: Event?): List<Wallpaper> {
-            Log.e("WallpaperService", "PROJECTIVY_LOG: getWallpapers | Event: ${event?.eventType} (${event?.javaClass?.simpleName}) ")
+            Log.e("WallpaperService", "PROJECTIVY_LOG: getWallpapers | Event: ${event?.eventType}")
 
             var forceRefresh = false
 
+            // Logic for handling Idle mode transitions
             if (event is Event.LauncherIdleModeChanged) {
-                Log.e("WallpaperService", "PROJECTIVY_LOG: AIDL Idle Changed | isIdle: ${event.isIdle}")
-
-                // If exiting idle mode (screensaver stops)
                 if (!event.isIdle) {
                     if (PreferencesManager.refreshOnIdleExit) {
-                        Log.e("WallpaperService", "PROJECTIVY_LOG: Idle exit detected and preference is ON. Triggering refresh.")
                         forceRefresh = true
                     } else {
-                        // Preference is OFF, return last saved wallpaper
                         val lastUri = PreferencesManager.lastWallpaperUri
-                        val lastAuthor = PreferencesManager.lastWallpaperAuthor
                         if (lastUri.isNotBlank()) {
-                            Log.e("WallpaperService", "PROJECTIVY_LOG: Idle exit detected but preference is OFF. Returning last wallpaper: $lastUri")
-                            return listOf(Wallpaper(uri = lastUri, type = WallpaperType.IMAGE, displayMode = WallpaperDisplayMode.CROP, author = lastAuthor.ifBlank { null }, actionUri = null))
-                        } else {
-                            Log.e("WallpaperService", "PROJECTIVY_LOG: Idle exit detected but preference is OFF and no last wallpaper saved. Returning empty list.")
-                            return emptyList()
+                            return listOf(Wallpaper(uri = lastUri, type = WallpaperType.IMAGE, displayMode = WallpaperDisplayMode.CROP, author = PreferencesManager.lastWallpaperAuthor, actionUri = null))
                         }
+                        return emptyList()
                     }
                 } else {
-                    // If entering idle mode (screensaver starts), we don't need to refresh
-                    Log.e("WallpaperService", "PROJECTIVY_LOG: Idle enter detected. No refresh needed.")
                     return emptyList()
                 }
             }
 
-            // Standard refresh logic (TimeElapsed, or confirmed forceRefresh)
+            // Execute API Call
             if (event is Event.TimeElapsed || forceRefresh) {
-                Log.e("WallpaperService", "PROJECTIVY_LOG: Executing API refresh...")
-                val serverUrl = PreferencesManager.serverUrl
-                val selectedLayout = PreferencesManager.selectedLayout
-
-                val genreFilterString = PreferencesManager.genreFilter.ifEmpty { null }
-                val ageFilterString = PreferencesManager.ageFilter.ifEmpty { null }
-
-                val yearFilterString = PreferencesManager.yearFilter
-                var minYearParam: String? = null
-                var maxYearParam: String? = null
-
-                if (yearFilterString.isNotBlank()) {
-                    if (yearFilterString.contains("-")) {
-                        val parts = yearFilterString.split("-")
-                        if (parts.size == 2) {
-                            minYearParam = parts[0].trim()
-                            maxYearParam = parts[1].trim()
-                        } else {
-                            // Invalid range format, treat as single year if possible or ignore
-                            minYearParam = yearFilterString.trim()
-                            maxYearParam = yearFilterString.trim()
-                        }
-                    } else {
-                        // Single year
-                        minYearParam = yearFilterString.trim()
-                        maxYearParam = yearFilterString.trim()
-                    }
-                }
-
-                val minRating = PreferencesManager.minRating
-                val maxRating = PreferencesManager.maxRating
-
-                if (serverUrl.isBlank()) return emptyList()
-
                 try {
+                    // 1. Hardcoded Base URL
+                    val fixedBaseUrl = "http://192.168.2.50/"
+
                     val apiService = Retrofit.Builder()
-                        .baseUrl(serverUrl)
+                        .baseUrl(fixedBaseUrl)
                         .addConverterFactory(GsonConverterFactory.create())
                         .build()
                         .create(ApiService::class.java)
 
-                    val response = apiService.getWallpaperStatus(
-                        layout = selectedLayout,
-                        genre = genreFilterString,
-                        ageRating = ageFilterString,
-                        minYear = minYearParam,
-                        maxYear = maxYearParam,
-                        minRating = if (minRating > 0.0f) minRating else null,
-                        maxRating = if (maxRating < 10.0f) maxRating else null
-                    ).execute()
+                    // 2. Simple call without parameters
+                    val response = apiService.getWallpaperStatus().execute()
 
                     if (response.isSuccessful) {
                         val status = response.body()
                         if (status != null) {
                             var action = status.actionUrl
 
+                            // Handle Jellyfin deep linking if necessary
                             if (!action.isNullOrBlank() && action.startsWith("jellyfin://items/")) {
                                 val id = action.substringAfter("jellyfin://items/")
-                                action = "embyatv://tv.emby.embyatv/play/$id"
+                                val preferredClient = PreferencesManager.preferredClient
+                                val newAction = ClientManager.getClientActionUri(this@WallpaperProviderService, preferredClient, id)
+                                if (newAction != null) action = newAction
                             }
-                            Log.e("WallpaperService", "PROJECTIVY_LOG: API Success: ${status.imageUrl}")
 
-                            // Save last successfully loaded wallpaper
+                            // Save for persistence
                             PreferencesManager.lastWallpaperUri = status.imageUrl
-                            // Use selectedLayout as author, or a default if selectedLayout is blank
-                            PreferencesManager.lastWallpaperAuthor = selectedLayout.ifBlank { "" }
+                            PreferencesManager.lastWallpaperAuthor = status.title ?: ""
 
                             return listOf(
                                 Wallpaper(
                                     uri = status.imageUrl,
                                     type = WallpaperType.IMAGE,
                                     displayMode = WallpaperDisplayMode.CROP,
-                                    author = selectedLayout,
+                                    author = status.title,
                                     actionUri = action
                                 )
                             )
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("WallpaperService", "PROJECTIVY_LOG: AIDL Error", e)
+                    Log.e("WallpaperService", "PROJECTIVY_LOG: API Error", e)
                 }
-            } else {
-                Log.e("WallpaperService", "PROJECTIVY_LOG: Event type ${event?.javaClass?.simpleName} not handled by service for refresh.")
             }
             return emptyList()
         }

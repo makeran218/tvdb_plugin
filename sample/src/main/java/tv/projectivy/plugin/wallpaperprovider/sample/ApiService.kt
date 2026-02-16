@@ -2,25 +2,22 @@ package tv.projectivy.plugin.wallpaperprovider.sample
 
 import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Query
 
+// 1. Updated Data Class to match your JSON
 data class WallpaperStatus(
     val imageUrl: String,
-    val actionUrl: String?
+    val actionUrl: String?,
+    val title: String? // Added title field
 )
 
 interface ApiService {
-    @GET("/api/wallpaper/status")
-    fun getWallpaperStatus(
-        @Query("layout") layout: String,
-        @Query("genre") genre: String? = null,
-        @Query("age_rating") ageRating: String? = null,
-        @Query("min_year") minYear: String? = null,
-        @Query("max_year") maxYear: String? = null,
-        @Query("min_rating") minRating: Float? = null,
-        @Query("max_rating") maxRating: Float? = null
-    ): Call<WallpaperStatus>
+    // 2. Updated to your fixed endpoint /tvdb
+    // Removed all @Query parameters as they are no longer needed
+    @GET("tvdb/api.json")
+    fun getWallpaperStatus(): Call<WallpaperStatus>
 
+    // You can keep these if you still need them,
+    // but based on your request, they are likely no longer used.
     @GET("/api/layouts/list")
     fun getLayouts(): Call<List<String>>
 
