@@ -27,12 +27,6 @@ import kotlin.collections.mapTo
 object PreferencesManager {
     private const val IMAGE_URL_KEY = "image_url_key"
     private const val SERVER_URL_KEY = "server_url_key"
-    private const val SELECTED_LAYOUT_KEY = "selected_layout_key"
-    private const val GENRE_FILTER_KEY = "genre_filter_key"
-    private const val AGE_FILTER_KEY = "age_filter_key"
-    private const val YEAR_FILTER_KEY = "year_filter_key"
-    private const val MIN_RATING_KEY = "pref_min_rating"
-    private const val MAX_RATING_KEY = "pref_max_rating"
     private const val REFRESH_ON_IDLE_EXIT_KEY = "pref_refresh_on_idle_exit"
     private const val LAST_WALLPAPER_URI_KEY = "last_wallpaper_uri"
     private const val LAST_WALLPAPER_AUTHOR_KEY = "last_wallpaper_author"
@@ -88,29 +82,7 @@ object PreferencesManager {
         get() = PreferencesManager[SERVER_URL_KEY, "https://makeran218.github.io/projectivity-background-source/"]
         set(value) { PreferencesManager[SERVER_URL_KEY] = value }
 
-    var selectedLayout: String
-        get() = PreferencesManager[SELECTED_LAYOUT_KEY, "default"]
-        set(value) { PreferencesManager[SELECTED_LAYOUT_KEY] = value }
 
-    var genreFilter: String
-        get() = PreferencesManager[GENRE_FILTER_KEY, ""]
-        set(value) { PreferencesManager[GENRE_FILTER_KEY] = value }
-
-    var ageFilter: String
-        get() = PreferencesManager[AGE_FILTER_KEY, ""]
-        set(value) { PreferencesManager[AGE_FILTER_KEY] = value }
-
-    var yearFilter: String
-        get() = PreferencesManager[YEAR_FILTER_KEY, ""]
-        set(value) { PreferencesManager[YEAR_FILTER_KEY] = value }
-
-    var minRating: Float
-        get() = PreferencesManager[MIN_RATING_KEY, 7.0f]
-        set(value) { PreferencesManager[MIN_RATING_KEY] = value }
-
-    var maxRating: Float
-        get() = PreferencesManager[MAX_RATING_KEY, 10.0f]
-        set(value) { PreferencesManager[MAX_RATING_KEY] = value }
 
     var refreshOnIdleExit: Boolean
         get() = PreferencesManager[REFRESH_ON_IDLE_EXIT_KEY, true]
