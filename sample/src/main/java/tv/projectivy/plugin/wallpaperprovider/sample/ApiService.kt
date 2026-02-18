@@ -14,7 +14,7 @@ interface ApiService {
     // 2. Updated to your fixed endpoint /tvdb/api
     // Removed all @Query parameters as they are no longer needed
     @GET("api.json")
-    fun getWallpaperStatus(): Call<WallpaperStatus>
+    fun getWallpaperStatus(): Call<List<WallpaperStatus>> // Added List<> here
 
     // You can keep these if you still need them,
     // but based on your request, they are likely no longer used.
