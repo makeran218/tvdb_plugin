@@ -53,7 +53,7 @@ class WallpaperProviderService: Service() {
 
             if (event is Event.TimeElapsed || forceRefresh) {
                 try {
-                    val fixedBaseUrl = "https://makeran218.github.io/projectivity-background-source"
+                    val fixedBaseUrl = "https://makeran218.github.io/projectivity-background-source/"
 
                     val apiService = Retrofit.Builder()
                         .baseUrl(fixedBaseUrl)
