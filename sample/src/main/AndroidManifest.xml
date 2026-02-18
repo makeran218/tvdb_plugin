@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.butch708.projectivy.tvbgsuite"
+    package="io.makeran218.projectivy.tvbgsuite.wallpaper"
     tools:ignore="MissingLeanbackLauncher">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -46,7 +46,7 @@
         <!-- ContentProvider ONLY for Idle Mode Changed (16) -->
         <provider
             android:name="tv.projectivy.plugin.wallpaperprovider.sample.WallpaperProvider"
-            android:authorities="com.butch708.projectivy.tvbgsuite.wallpaper"
+            android:authorities="io.makeran218.projectivy.tvbgsuite.wallpaper.wallpaper"
             android:exported="true">
             <meta-data
                 android:name="updateMode"
@@ -90,7 +90,7 @@
 
             <meta-data
                 android:name="authority"
-                android:value="com.butch708.projectivy.tvbgsuite.wallpaper"/>
+                android:value="io.makeran218.projectivy.tvbgsuite.wallpaper.wallpaper"/>
 
             <meta-data
                 android:name="itemsCacheDurationMillis"

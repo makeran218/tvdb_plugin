@@ -7,7 +7,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
-import com.butch708.projectivy.tvbgsuite.R
+import io.makeran218.projectivy.tvbgsuite.wallpaper.R
 import tv.projectivy.plugin.wallpaperprovider.api.WallpaperProviderContract
 
 class WallpaperProvider : ContentProvider() {
@@ -48,12 +48,12 @@ class WallpaperProvider : ContentProvider() {
         try {
             val context = context ?: return null
             PreferencesManager.init(context.applicationContext)
-            
+
             val event = uri.getQueryParameter("event")
             val isIdle = uri.getBooleanQueryParameter("isIdle", false)
-            
+
             Log.e("MY_WALLPAPER_PROVIDER", "PROJECTIVY_LOG: Query | URI: $uri | Event: $event | isIdle: $isIdle | Selection: $selection")
-            
+
             // Trigger refresh if exiting idle mode
             if (event == "LAUNCHER_IDLE_MODE_CHANGED") {
                 if (!isIdle) {
@@ -72,7 +72,7 @@ class WallpaperProvider : ContentProvider() {
         } catch (e: Exception) {
             Log.e("MY_WALLPAPER_PROVIDER", "PROJECTIVY_LOG: Query failed", e)
         }
-        
+
         return null
     }
 

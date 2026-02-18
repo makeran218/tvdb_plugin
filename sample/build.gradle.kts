@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.butch708.projectivy.tvbgsuite"
+    namespace = "io.makeran218.projectivy.tvbgsuite.wallpaper"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.butch708.projectivy.tvbgsuite"
+        applicationId = "io.makeran218.projectivy.tvbgsuite.wallpaper"
         minSdk = 23
         targetSdk = 36
         versionCode = 33

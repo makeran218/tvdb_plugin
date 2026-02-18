@@ -8,13 +8,13 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.GuidedStepSupportFragment
 import tv.projectivy.plugin.wallpaperprovider.api.WallpaperProviderContract
-import com.butch708.projectivy.tvbgsuite.R
+import io.makeran218.projectivy.tvbgsuite.wallpaper.R
 
 class SettingsActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         Log.d("SettingsActivity", "onCreate called")
 
         try {

@@ -6,7 +6,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.butch708.projectivy.tvbgsuite.R
+import io.makeran218.projectivy.tvbgsuite.wallpaper.R
 
 class SettingsFragment : GuidedStepSupportFragment() {
 
