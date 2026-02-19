@@ -14,6 +14,31 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val TAG = "SettingsFragment"
         private const val ACTION_ID_SERVER_URL = 1L
         private const val ACTION_ID_EVENT_IDLE = 9L
+        private const val ACTION_ID_APP_TARGET = 10L
+    }
+
+    override fun onSubGuidedActionClicked(action: GuidedAction): Boolean {
+        // Check if the clicked sub-action belongs to our Target App group
+        if (action.checkSetId == 10) {
+            val newTarget = action.title.toString()
+
+            // 1. Save to Preferences
+            PreferencesManager.appTarget = newTarget
+
+            // 2. Update the main UI to show the new selection in the description
+            val parentAction = findActionById(ACTION_ID_APP_TARGET)
+            parentAction?.description = newTarget
+
+            // 3. Refresh the UI so the user sees the checkmark move
+            notifyActionChanged(findActionPositionById(ACTION_ID_APP_TARGET))
+
+            // 4. Trigger a wallpaper update to apply the new link format
+            (activity as? SettingsActivity)?.requestWallpaperUpdate()
+
+            // Close the sub-menu and go back to the main settings list
+            return true
+        }
+        return super.onSubGuidedActionClicked(action)
     }
 
     override fun onCreateGuidance(savedInstanceState: Bundle?): Guidance {
@@ -31,6 +56,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
 
             val serverUrl = PreferencesManager.serverUrl
             val refreshOnIdle = PreferencesManager.refreshOnIdleExit
+            val APP_TARGETS = listOf("Stremio", "Kodi", "Plex", "Emby")
 
             // 1. Server URL Action
             actions.add(GuidedAction.Builder(context)
@@ -50,6 +76,20 @@ class SettingsFragment : GuidedStepSupportFragment() {
                 .checked(refreshOnIdle)
                 .build())
 
+
+            actions.add(GuidedAction.Builder(context)
+                .id(ACTION_ID_APP_TARGET)
+                .title("Target App")
+                .description(PreferencesManager.appTarget) // Shows current choice
+                .subActions(APP_TARGETS.mapIndexed { i, name ->
+                    GuidedAction.Builder(context)
+                        .id(1000L + i)
+                        .title(name)
+                        .checkSetId(10) // Radio button group ID
+                        .checked(name == PreferencesManager.appTarget) // Check the current one
+                        .build()
+                })
+                .build())
         } catch (e: Exception) {
             Log.e(TAG, "Error creating actions", e)
         }

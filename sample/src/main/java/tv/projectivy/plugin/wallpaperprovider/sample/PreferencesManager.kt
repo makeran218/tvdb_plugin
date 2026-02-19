@@ -30,6 +30,7 @@ object PreferencesManager {
     private const val REFRESH_ON_IDLE_EXIT_KEY = "pref_refresh_on_idle_exit"
     private const val LAST_WALLPAPER_URI_KEY = "last_wallpaper_uri"
     private const val LAST_WALLPAPER_AUTHOR_KEY = "last_wallpaper_author"
+    private const val APP_TARGET_KEY = "app_target"
 
     // NEW KEYS FOR TIME GUARD AND DEEP LINKS
     private const val LAST_UPDATE_TIMESTAMP_KEY = "last_update_timestamp"
@@ -105,6 +106,9 @@ object PreferencesManager {
         get() = PreferencesManager[LAST_ACTION_URI_KEY, ""]
         set(value) { PreferencesManager[LAST_ACTION_URI_KEY] = value }
 
+    var appTarget: String
+        get() = PreferencesManager[APP_TARGET_KEY, "Stremio"] // Default to Stremio
+        set(value) { PreferencesManager[APP_TARGET_KEY] = value }
 
     fun export(): String {
         return convertSharedPreferencesToJson(preferences)

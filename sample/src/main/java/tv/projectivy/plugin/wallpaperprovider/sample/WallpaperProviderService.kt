@@ -88,16 +88,32 @@ class WallpaperProviderService : Service() {
                             val status = wallpaperList[randomIndex]
 
                             // Deep Link Logic
+                            val targetApp = PreferencesManager.appTarget
                             val rawAction = status.actionUrl ?: ""
                             var finalAction: String? = null
 
                             if (rawAction.contains("_tmdb:")) {
                                 val parts = rawAction.split("_tmdb:")
                                 if (parts.size == 2) {
-                                    var type = parts[0]
+                                    val type = parts[0] // "movie" or "tv"
                                     val id = parts[1]
-                                    if (type == "tv") type = "series"
-                                    finalAction = "stremio:///detail/$type/tmdb:$id"
+
+                                    finalAction = when (targetApp) {
+                                        "Stremio" -> {
+                                            val stremioType = if (type == "tv") "series" else "movie"
+                                            "stremio:///detail/$stremioType/tmdb:$id"
+                                        }
+                                        "Kodi" -> {
+                                            // Targeting TMDB Helper as discussed
+                                            "kodi://runplugin/plugin.video.themoviedb.helper/?action=play_item&tmdb_id=$id&type=$type"
+                                        }
+                                        "Plex", "Emby" -> {
+                                            // Placeholder: These usually require a web search or specific server item IDs
+                                            // For now, we'll just log it
+                                            null
+                                        }
+                                        else -> null
+                                    }
                                 }
                             }
 
