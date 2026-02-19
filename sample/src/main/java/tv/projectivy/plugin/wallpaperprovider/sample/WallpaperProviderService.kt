@@ -104,15 +104,11 @@ class WallpaperProviderService : Service() {
                                             "stremio:///detail/$stremioType/tmdb:$id"
                                         }
                                         "Kodi" -> {
-                                            // 1. Choose the browse action based on the type
                                             val action = if (type == "tv") "tvshow_browse" else "movie_browse"
-
-                                            // 2. Construct the URL using ONLY the TMDB ID
-                                            // We add mode=None as a safety measure to avoid the navigator loop
                                             val kodiUrl = "plugin://plugin.video.pov/?action=$action&tmdb_id=$id&mode=None"
 
-                                            // 3. Wrap in the Intent for Projectivy
-                                            "intent:#Intent;action=android.intent.action.VIEW;scheme=plugin;dat=$kodiUrl;package=org.xbmc.kodi;end"
+                                            // We explicitly set the package and the action inside the intent string
+                                            "intent:$kodiUrl#Intent;action=android.intent.action.VIEW;package=org.xbmc.kodi;component=org.xbmc.kodi/.Main;end"
                                         }
                                         "Plex", "Emby" -> {
                                             // Placeholder: These usually require a web search or specific server item IDs
