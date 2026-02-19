@@ -104,10 +104,20 @@ class WallpaperProviderService : Service() {
                                             "stremio:///detail/$stremioType/tmdb:$id"
                                         }
                                         "Kodi" -> {
-                                            val action = if (type == "tv") "tvshow_browse" else "movie_browse"
-                                            val kodiUrl = "plugin://plugin.video.pov/?action=$action&tmdb_id=$id&mode=None"
+                                            // 1. Map 'tv' to 'episode' and 'movie' to 'movie' for POV's playback mode
+                                            val mediaType = if (type == "tv") "episode" else "movie"
 
-                                            // We explicitly set the package and the action inside the intent string
+                                            // 2. Build the playback URL using ONLY the ID
+                                            // We add autoplay=false to ensure it shows the source list instead of just picking one
+                                            var kodiUrl = "plugin://plugin.video.pov/?mode=playback.media&media_type=$mediaType&tmdb_id=$id&autoplay=false"
+
+                                            // 3. For TV, POV REQUIRES a season and episode to start the scraper.
+                                            // If your ID doesn't include them, we default to S1E1.
+                                            if (type == "tv") {
+                                                kodiUrl += "&season=1&episode=1"
+                                            }
+
+                                            // 4. Wrap in the explicit Intent for Projectivy
                                             "intent:$kodiUrl#Intent;action=android.intent.action.VIEW;package=org.xbmc.kodi;component=org.xbmc.kodi/.Main;end"
                                         }
                                         "Plex", "Emby" -> {
